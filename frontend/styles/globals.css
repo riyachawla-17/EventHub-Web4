@@ -6,7 +6,7 @@
   --bg: #f9f6ff;
   --text: #2c2c2c;
   --card-bg: #ffffff;
-  --accent: #5a189a;
+  --accent: #cb2766;
 }
 /* Background image styling for the homepage */
 .hero-background {
@@ -78,6 +78,10 @@ header h1 {
   padding-left: 45%;
 }
 
+h2{
+  color: #99003d;
+}
+
 nav a {
   margin-left: 1.5rem;
   color: white;
@@ -99,6 +103,7 @@ form {
   background: #fff;
   padding: 2rem;
   border-radius: 12px;
+  text-align: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
