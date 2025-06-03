@@ -6,21 +6,21 @@ const allEvents = [
   {
     id: 1,
     title: 'Tech Conference 2025',
-    image: '/images/event1.jpg',
+    image: '/images/event.jpeg',
     startDate: 'June 10, 2025',
     endDate: 'June 12, 2025',
   },
   {
     id: 2,
     title: 'Design Meetup',
-    image: '/images/event2.jpg',
+    image: '/images/event.jpeg',
     startDate: 'July 1, 2025',
     endDate: 'July 1, 2025',
   },
   {
     id: 3,
     title: 'Hackathon Night',
-    image: '/images/event3.jpg',
+    image: '/images/event.jpeg',
     startDate: 'Aug 20, 2025',
     endDate: 'Aug 21, 2025',
   },
@@ -35,7 +35,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      {/* Search + Filter Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <input
           type="text"
@@ -49,7 +48,6 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Event Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEvents.map(event => (
           <EventCard key={event.id} event={event} />

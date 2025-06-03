@@ -8,7 +8,7 @@ interface Event {
 
 export default function EventCard({ event }: { event: Event }) {
   return (
-    <div className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition duration-300 border border-gray-100">
+    <div className="bg-white border border-emerald-100 shadow-sm rounded-xl overflow-hidden hover:shadow-md transition duration-300">
       <img
         src={event.image}
         alt={event.title}
