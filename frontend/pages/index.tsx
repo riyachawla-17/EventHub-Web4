@@ -1,5 +1,5 @@
 import Link from 'next/link';
-
+import UserDashboard from '../components/UserDashboard';
 
 export default function Home() {
   return (
@@ -24,5 +24,12 @@ export default function Home() {
     </>
     
   );
-  
 }
+
+export function DashboardPage() {
+    return (
+      <div className="dashboard">
+        <UserDashboard />
+      </div>
+    );
+  } 
