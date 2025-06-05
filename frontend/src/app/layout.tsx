@@ -6,6 +6,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'EventHub',
   description: 'Book your next event experience',
+  icons: {
+    icon: '/images/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -15,6 +18,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+       <title>EventHub</title>
+      </head>
       <body className="bg-white text-gray-800">
         <div className="flex flex-col min-h-screen">
           <Navbar />

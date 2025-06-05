@@ -43,7 +43,7 @@ export default function HomePage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-1/2 p-3 border border-[#b2784a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#b2784a] bg-white text-[#59371c]"
         />
-        <button className="bg-[#b2784a] text-white px-5 py-3 rounded-xl hover:bg-emerald-700 transition-all">
+        <button className="bg-[#b2784a] text-white px-5 py-3 rounded-xl hover:bg-[#a56a3e] transition-all">
           Filter
         </button>
       </div>
