@@ -1,6 +1,6 @@
 export default function RegisterPage() {
   return (
-    <div className="max-w-md mx-auto mt-20 bg-white p-8 rounded-xl shadow">
+    <div className="max-w-md mx-auto mt-20 bg-white p-8 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-center text-black">Create Account</h2>
       <form className="space-y-4">
         <input
