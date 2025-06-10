@@ -1,6 +1,18 @@
+'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
+  const router = useRouter();
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    router.push('/');
+  };
+
   return (
     <nav className="w-full bg-[#b2784a] text-white p-3 flex items-center justify-between">
       <div className="flex items-center gap-8">
@@ -13,16 +25,24 @@ export default function Navbar() {
         </div>
       </div>
       <div className="flex gap-2">
-        <Link href="/login">
-          <button className="bg-[#f8f1eb] text-[#59371c] font-semibold py-2 px-4 rounded-xl hover:bg-[#e6d9cf] transition">
-            Login
+        {isLoggedIn ? (
+          <button onClick={handleLogout} className="bg-[#f8f1eb] text-[#59371c] font-semibold py-2 px-4 rounded-xl hover:bg-[#e6d9cf] transition">
+            Logout
           </button>
-        </Link>
-        <Link href="/register">
-          <button className="bg-[#59371c] text-[#f8f1eb] font-semibold py-2 px-4 rounded-xl hover:bg-[#4e3119] transition">
-            Sign Up
-          </button>
-        </Link>
+        ) : (
+          <>
+            <Link href="/login">
+              <button className="bg-[#f8f1eb] text-[#59371c] font-semibold py-2 px-4 rounded-xl hover:bg-[#e6d9cf] transition">
+                Login
+              </button>
+            </Link>
+            <Link href="/register">
+              <button className="bg-[#59371c] text-[#f8f1eb] font-semibold py-2 px-4 rounded-xl hover:bg-[#4e3119] transition">
+                Sign Up
+              </button>
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

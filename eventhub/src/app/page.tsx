@@ -6,6 +6,7 @@ interface EventType {
   _id: string;
   title: string;
   description?: string;
+  image?: string;
   from: string;
   to: string;
   time: string;

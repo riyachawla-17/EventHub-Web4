@@ -1,11 +1,11 @@
-import { connectDB } from '@/lib/db';
+import dbConnect  from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  await connectDB();
+  await dbConnect();
   const { email, password } = await req.json();
 
   const user = await User.findOne({ email });

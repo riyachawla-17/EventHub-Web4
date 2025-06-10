@@ -2,6 +2,7 @@ import './globals.css';
 import Navbar from '../app/components/Navbar';
 import Footer from '../app/components/Footer';
 import type { Metadata } from 'next';
+import { AuthProvider } from '../context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'EventHub',
@@ -11,22 +12,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-       <title>EventHub</title>
-      </head>
-      <body className="bg-white text-gray-800">
-        <div className="flex flex-col min-h-screen">
+    <html>
+      <body className="min-h-screen flex flex-col">
+        <AuthProvider>
           <Navbar />
-          <main className="flex-1 p-6">{children}</main>
+          <main className="flex-grow">{children}</main>
           <Footer />
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );

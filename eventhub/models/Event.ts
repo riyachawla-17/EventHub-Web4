@@ -14,6 +14,10 @@ const eventSchema = new Schema(
       lat: Number,
       lng: Number,
     },
+    image: {
+      data: Buffer,
+      contentType: String,
+    },
     attendees: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     qrCodes: [String],
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
