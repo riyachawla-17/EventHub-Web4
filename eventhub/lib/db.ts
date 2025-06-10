@@ -1,18 +1,30 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
+dotenv.config();
 
-if (!MONGODB_URI) {
-  throw new Error('Please define MONGODB_URI in .env.local');
-}
+const dbConnect = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI!, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    const connection = mongoose.connection;
+    
+    connection.on('connected', () => {
+      console.log('MongoDB connected successfully');
+    });
 
-let cached = (global as any).mongoose || { conn: null };
-
-export const connectDB = async () => {
-  if (cached.conn) return cached.conn;
-  cached.conn = await mongoose.connect(MONGODB_URI, {
-    dbName: 'eventhub',
-  });
-  (global as any).mongoose = cached;
-  return cached.conn;
+    connection.on('error', (err) => {
+      console.log(
+        'MongoDB connection error. Please make sure MongoDB is running. ' + err
+      );
+      process.exit();
+    });
+  } catch (error) {
+    console.log('Something went wrong!');
+    console.log(error);
+  }
 };
+
+export default dbConnect;

@@ -8,6 +8,7 @@ export async function GET() {
     const events = await Event.find().sort({ date: 1 });
     return NextResponse.json({ events });
   } catch (err) {
+    console.error('Error in GET /api/events:', err);
     return NextResponse.json({ message: 'Failed to fetch events' }, { status: 500 });
   }
 }
