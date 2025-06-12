@@ -17,11 +17,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'User already exists' }, { status: 409 });
   }
 
+  // Get the highest existing userId and increment
+  const lastUser = await User.findOne().sort({ userId: -1 });
+  const nextUserId = lastUser?.userId ? lastUser.userId + 1 : 1;
+
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = await User.create({ name, email, password: hashedPassword, role: 'user' });
+  const newUser = await User.create({
+    userId: nextUserId,
+    name,
+    email,
+    password: hashedPassword,
+    role: 'user',
+  });
 
   const token = jwt.sign(
-    { userId: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role },
+    {
+      id: newUser._id,
+      userId: newUser.userId,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    },
     process.env.JWT_SECRET!,
     { expiresIn: '7d' }
   );

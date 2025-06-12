@@ -26,7 +26,7 @@ export default function LoginPage() {
     } else {
       localStorage.setItem('token', data.token);
       setIsLoggedIn(true);
-      router.push('/');
+      router.push('/userDashboard');
     }
   };
 
