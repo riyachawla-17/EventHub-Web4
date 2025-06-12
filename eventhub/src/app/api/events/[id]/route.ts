@@ -2,10 +2,11 @@ import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
+  const { id } = await context.params; // Await params before destructuring
   try {
     await dbConnect();
-    const event = await Event.findById(params.id).lean();
+    const event = await Event.findById(id).lean();
     if (!event) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }

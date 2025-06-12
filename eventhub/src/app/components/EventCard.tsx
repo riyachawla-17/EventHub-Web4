@@ -22,7 +22,9 @@ export default function EventCard({ event }: { event: Event }) {
         if (bufferData.data) {
           bufferData = bufferData.data;
         }
-        const binaryStr = Array.from(bufferData).reduce(
+
+        // ✅ Fix: Explicitly assert type to number[]
+        const binaryStr = (bufferData as number[]).reduce(
           (acc: string, byte: number) => acc + String.fromCharCode(byte),
           ''
         );

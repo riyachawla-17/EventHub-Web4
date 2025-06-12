@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
 export function middleware(req: NextRequest) {
-  const token = req.headers.get('authorization')?.split(' ')[1];
+  const token = req.cookies.get('token')?.value;
 
   if (!token) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
   try {
     jwt.verify(token, process.env.JWT_SECRET!);
     return NextResponse.next();
   } catch (err) {
-    return NextResponse.json({ message: 'Invalid token' }, { status: 403 });
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 }
 
 export const config = {
-  matcher: ['/api/events/create'],
+  matcher: ['/dashboard/:path*', '/events/create'],
 };

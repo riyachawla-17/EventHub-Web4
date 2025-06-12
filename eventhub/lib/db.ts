@@ -1,30 +1,25 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
-dotenv.config();
+let isConnected: boolean = false;
 
-const dbConnect = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI!, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    const connection = mongoose.connection;
-    
-    connection.on('connected', () => {
-      console.log('MongoDB connected successfully');
-    });
-
-    connection.on('error', (err) => {
-      console.log(
-        'MongoDB connection error. Please make sure MongoDB is running. ' + err
-      );
-      process.exit();
-    });
-  } catch (error) {
-    console.log('Something went wrong!');
-    console.log(error);
+export default async function dbConnect() {
+  if (isConnected) {
+    return;
   }
-};
 
-export default dbConnect;
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    throw new Error('MONGODB_URI not set in environment');
+  }
+
+  try {
+    const db = await mongoose.connect(uri);
+
+    isConnected = !!db.connections[0].readyState;
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}

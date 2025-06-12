@@ -1,10 +1,10 @@
-import { connectDB } from '@/lib/db';
+import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  await connectDB();
+  await dbConnect();
   const token = req.headers.get('authorization')?.split(' ')[1];
 
   if (!token)
@@ -16,6 +16,8 @@ export async function POST(req: Request) {
 
     const newEvent = await Event.create({
       ...body,
+      street: body.street,
+      city: body.city,
       createdBy: decoded.userId
     });
 
