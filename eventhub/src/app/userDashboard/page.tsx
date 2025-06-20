@@ -106,23 +106,6 @@ export default function UserDashboard() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Welcome, {userName}</h1>
-        <div className="flex gap-3">
-          <button
-            onClick={() => router.push('/edit-profile')}
-            className="bg-[#59371c] text-white px-4 py-2 rounded hover:bg-[#402914] text-sm"
-          >
-            Edit Profile
-          </button>
-          <button
-            onClick={() => {
-              localStorage.removeItem('token');
-              router.push('/login');
-            }}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
-          >
-            Logout
-          </button>
-        </div>
       </div>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">

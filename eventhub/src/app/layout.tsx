@@ -1,5 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import Footer from './components/Footer';
+import Navbar from './components/Navbar';
+import { AuthProvider } from '../context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'EventHub',
@@ -14,15 +17,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#fffaf6] text-[#3c2a21] min-h-screen font-sans">
+        <AuthProvider>
         <div className="flex flex-col min-h-screen">
-          <header className="px-6 py-4 border-b border-[#e6dcd3] shadow-sm bg-[#f8f1eb]">
-            <h1 className="text-2xl font-bold">EventHub</h1>
-          </header>
+          <Navbar />
           <main className="flex-grow">{children}</main>
-          <footer className="text-center py-4 text-sm text-[#9a7862] bg-[#f8f1eb] border-t border-[#e6dcd3]">
-            © {new Date().getFullYear()} EventHub. All rights reserved.
-          </footer>
+          <Footer />
         </div>
+        </AuthProvider>
       </body>
     </html>
   );

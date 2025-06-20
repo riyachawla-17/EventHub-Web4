@@ -5,12 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
   const router = useRouter();
-  const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const { isLoggedIn, setIsLoggedIn, setToken } = useAuth();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    setToken(null);
     setIsLoggedIn(false);
-    router.push('/');
+    router.push('/login'); // Redirect to login page after logout
   };
 
   return (
@@ -26,9 +27,20 @@ export default function Navbar() {
       </div>
       <div className="flex gap-2">
         {isLoggedIn ? (
-          <button onClick={handleLogout} className="bg-[#f8f1eb] text-[#59371c] font-semibold py-1 px-3 rounded-md hover:bg-[#e6d9cf] transition">
-            Logout
-          </button>
+          <>
+            <button
+              onClick={() => router.push('/edit-profile')}
+              className="bg-[#59371c] text-white font-semibold py-1 px-3 rounded-md hover:bg-[#4e3119] transition"
+            >
+              Edit Profile
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-[#f8f1eb] text-[#59371c] font-semibold py-1 px-3 rounded-md hover:bg-[#e6d9cf] transition"
+            >
+              Logout
+            </button>
+          </>
         ) : (
           <>
             <Link href="/login">
