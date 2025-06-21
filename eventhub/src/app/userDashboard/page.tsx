@@ -2,175 +2,123 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import { jwtDecode } from 'jwt-decode';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import EventForm from '../components/EventForm';
 
 interface EventType {
   _id: string;
   title: string;
+  description: string;
   from: string;
   to: string;
 }
 
-interface Ticket {
-  eventId: string;
-  qrCode: string;
-  used: boolean;
-}
-
-interface DecodedToken {
-  userId: string;
-  role: 'user' | 'admin';
-}
-
 export default function UserDashboard() {
   const router = useRouter();
-  const [userId, setUserId] = useState('');
-  const [userName, setUserName] = useState('');
   const [events, setEvents] = useState<EventType[]>([]);
-  const [registered, setRegistered] = useState<Ticket[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    try {
-      const decoded: DecodedToken = jwtDecode(token);
-
-      if (decoded.role !== 'user') {
-        router.push('/login');
-        return;
-      }
-
-      setUserId(decoded.userId);
-
-      fetch(`/api/users/${decoded.userId}`)
-        .then(res => res.json())
-        .then(data => {
-          setUserName(data.name || 'User');
-        })
-        .catch(() => {
-          setUserName('User');
-        });
-    } catch (err) {
-      console.error('Invalid token:', err);
-      localStorage.removeItem('token');
-      router.push('/login');
-    }
-  }, [router]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [formVisible, setFormVisible] = useState(false);
 
   useEffect(() => {
     fetch('/api/events')
       .then(res => res.json())
-      .then(data => setEvents(data.events || []));
+      .then(data => setEvents(data.events || []))
+      .catch(err => console.error('Failed to fetch events:', err));
+  }, []);
 
-    if (!userId) return;
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDate =
+      selectedDate === null ||
+      new Date(event.from).toDateString() === selectedDate.toDateString();
+    return matchesSearch && matchesDate;
+  });
 
-    fetch(`/api/tickets/user/${userId}`)
-      .then(res => res.json())
-      .then(data => setRegistered(data || []));
-  }, [userId]);
+  const handleCreateEvent = async (eventData: any) => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Event Data:', eventData); // Debugging log
+      const res = await fetch('/api/events/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(eventData),
+      });
 
-  const handleBookTicket = async (eventId: string) => {
-    const res = await fetch('/api/tickets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        eventId,
-        qrCode: `QR-${eventId}-${userId}`
-      }),
-    });
-
-    if (res.ok) {
-      alert('Ticket booked!');
-      const newTicket = await res.json();
-      setRegistered(prev => [...prev, newTicket]);
-    } else {
-      alert('Already registered or error occurred');
+      if (!res.ok) throw new Error('Failed to create event');
+      const data = await res.json();
+      setEvents(prev => [...prev, data.event]);
+      alert('Event created successfully!');
+      setFormVisible(false);
+    } catch (err) {
+      console.error('Error creating event:', err);
+      alert('Failed to create event');
     }
   };
 
-  const eventsOnSelectedDate = events.filter(e =>
-    new Date(e.from).toDateString() === selectedDate.toDateString()
-  );
-
-  const registeredEventIds = registered.map(r => r.eventId);
-
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Welcome, {userName}</h1>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <input
+          type="text"
+          placeholder="Search events..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full md:w-1/2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date: Date | null) => setSelectedDate(date)}
+          className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholderText="Select a date"
+        />
       </div>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-2">Upcoming Events</h2>
-          <Calendar
-            onChange={(value) => {
-              if (value instanceof Date) {
-                setSelectedDate(value);
-              } else if (Array.isArray(value) && value[0] instanceof Date) {
-                setSelectedDate(value[0]);
-              }
-            }}
-            value={selectedDate}
+      <button
+        onClick={() => setFormVisible(!formVisible)}
+        className="mt-4 bg-[#59371c] text-white px-4 py-2 rounded hover:bg-[#4e3119] transition"
+      >
+        Create Event
+      </button>
+
+      {formVisible && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
+          <EventForm
+            onSubmit={handleCreateEvent}
+            onCancel={() => setFormVisible(false)}
           />
         </div>
+      )}
 
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-2">
-            Events on {selectedDate.toDateString()}
-          </h2>
-          {eventsOnSelectedDate.length === 0 ? (
-            <p>No events scheduled.</p>
-          ) : (
-            eventsOnSelectedDate.map(event => (
-              <div key={event._id} className="mb-4 p-3 border rounded">
-                <h3 className="font-bold">{event.title}</h3>
-                <p>From: {new Date(event.from).toLocaleString()}</p>
-                <p>To: {new Date(event.to).toLocaleString()}</p>
-                {!registeredEventIds.includes(event._id) ? (
-                  <button
-                    onClick={() => handleBookTicket(event._id)}
-                    className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-                  >
-                    Book Ticket
-                  </button>
-                ) : (
-                  <p className="text-green-600 mt-2">Already Registered ✅</p>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      <section className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Registered Event History</h2>
-        {registered.length === 0 ? (
-          <p>No events registered yet.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {filteredEvents.length === 0 ? (
+          <p className="text-center text-gray-500">No events found.</p>
         ) : (
-          <ul className="list-disc pl-6 space-y-2">
-            {registered.map(ticket => {
-              const event = events.find(e => e._id === ticket.eventId);
-              if (!event) return null;
-              return (
-                <li key={ticket.qrCode}>
-                  <strong>{event.title}</strong> —{' '}
-                  {new Date(event.from).toLocaleDateString()}
-                  {ticket.used && <span className="text-green-600 ml-2">(Used)</span>}
-                </li>
-              );
-            })}
-          </ul>
+          filteredEvents.map(event => (
+            <div key={event._id} className="bg-[#f8f1eb] text-[#59371c] p-4 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+              <p className="text-[#59371c] mb-4">{event.description}</p>
+              <p className="text-sm text-[#59371c]">
+                <strong>From:</strong> {new Date(event.from).toLocaleString()}
+              </p>
+              <p className="text-sm text-[#59371c]">
+                <strong>To:</strong> {new Date(event.to).toLocaleString()}
+              </p>
+              <button
+                onClick={() => alert(`Booking ticket for ${event.title}`)}
+                className="mt-4 bg-[#59371c] text-white px-4 py-2 rounded hover:bg-[#4e3119] transition"
+              >
+                Book Ticket
+              </button>
+            </div>
+          ))
         )}
-      </section>
+      </div>
     </div>
   );
 }

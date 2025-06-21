@@ -25,7 +25,9 @@ export default function EventForm({ onSubmit, onCancel }: EventFormProps) {
   };
 
   return (
+    <div className="w-1/2 max-w-2xl rounded-lg shadow-lg">
     <form onSubmit={handleSubmit} className="space-y-3 bg-[#f8f1eb] p-4 rounded-lg shadow-md text-sm">
+      <h2 className="text-xl font-bold mb-4">Create Event</h2>
       <input
         type="text"
         placeholder="Title"
@@ -104,5 +106,6 @@ export default function EventForm({ onSubmit, onCancel }: EventFormProps) {
         </button>
       </div>
     </form>
+    </div>
   );
 }

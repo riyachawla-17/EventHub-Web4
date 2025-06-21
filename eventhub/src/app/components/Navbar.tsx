@@ -11,7 +11,7 @@ export default function Navbar() {
     localStorage.removeItem('token');
     setToken(null);
     setIsLoggedIn(false);
-    router.push('/login'); // Redirect to login page after logout
+    router.push('/login');
   };
 
   return (
@@ -19,8 +19,8 @@ export default function Navbar() {
       <div className="flex items-center gap-6">
         <img src="/images/logo.png" alt="EventHub Logo" className="h-10" />
         <div className="flex gap-3">
-          <Link href="/" className="hover:text-[#f8f1eb]">Home</Link>
-          <Link href="/events" className="hover:text-[#f8f1eb]">Events</Link>
+          <Link href="/userDashboard" className="hover:text-[#f8f1eb]">Home</Link>
+          <Link href="/myEvents" className="hover:text-[#f8f1eb]">My Events</Link>
           <Link href="/about" className="hover:text-[#f8f1eb]">About</Link>
           <Link href="/contact" className="hover:text-[#f8f1eb]">Contact</Link>
         </div>
