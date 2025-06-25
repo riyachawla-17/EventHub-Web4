@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import EventForm from '../components/EventForm';
+import { useAuth } from '../../context/AuthContext';
 
 interface EventType {
   _id: string;
@@ -15,6 +16,7 @@ interface EventType {
 }
 
 export default function UserDashboard() {
+  const { isLoggedIn } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState<EventType[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,17 +38,15 @@ export default function UserDashboard() {
     return matchesSearch && matchesDate;
   });
 
-  const handleCreateEvent = async (eventData: any) => {
+  const handleCreateEvent = async (formData: FormData) => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Event Data:', eventData); // Debugging log
       const res = await fetch('/api/events/create', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(eventData),
+        body: formData,
       });
 
       if (!res.ok) throw new Error('Failed to create event');
@@ -79,12 +79,14 @@ export default function UserDashboard() {
         />
       </div>
 
-      <button
-        onClick={() => setFormVisible(!formVisible)}
-        className="mt-4 bg-[#59371c] text-white px-4 py-2 rounded hover:bg-[#4e3119] transition"
-      >
-        Create Event
-      </button>
+      {isLoggedIn && (
+        <button
+          onClick={() => setFormVisible(!formVisible)}
+          className="mt-4 bg-[#59371c] text-white px-4 py-2 rounded hover:bg-[#4e3119] transition"
+        >
+          Create Event
+        </button>
+      )}
 
       {formVisible && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
@@ -101,6 +103,11 @@ export default function UserDashboard() {
         ) : (
           filteredEvents.map(event => (
             <div key={event._id} className="bg-[#f8f1eb] text-[#59371c] p-4 rounded-lg shadow-md">
+                <img
+                  src={event.image || '/images/placeholder.png'}
+                  alt={event.title}
+                  className="w-full h-40 object-cover rounded-md mb-4"
+                />
               <h3 className="text-xl font-bold mb-2">{event.title}</h3>
               <p className="text-[#59371c] mb-4">{event.description}</p>
               <p className="text-sm text-[#59371c]">

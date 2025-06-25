@@ -1,20 +1,17 @@
 import mongoose, { Schema } from 'mongoose';
-
+if (mongoose.models.Event) {
+  delete mongoose.models.Event;
+}
 const eventSchema = new Schema(
   {
-    eventId: { type: Number, unique: true, required: true },
     title: { type: String, required: true },
     description: String,
     capacity: Number,
     from: Date,
     to: Date,
-    time: String,
     street: String,
     city: String,
-    image: {
-      data: Buffer,
-      contentType: String,
-    },
+    image: String,
     attendees: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     qrCodes: [String],
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },

@@ -2,6 +2,8 @@ import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
 export async function POST(req: Request) {
   await dbConnect();
@@ -13,23 +15,29 @@ export async function POST(req: Request) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const body = await req.json();
 
-    console.log('Creating new event with data:', {
-      ...body,
-      street: body.street,
-      city: body.city,
-      createdBy: decoded.userId,
-    });
+    if (!req.headers.get('content-type')?.includes('multipart/form-data')) {
+      return NextResponse.json({ message: 'Invalid Content-Type' }, { status: 400 });
+    }
+
+    const formData = await req.formData();
+    const body = Object.fromEntries(formData.entries());
+    const imageFile = formData.get('image') as File;
+
+    let imagePath = '';
+    if (imageFile) {
+      const imageName = `${Date.now()}-${imageFile.name}`;
+      imagePath = `/images/${imageName}`;
+      const imageBuffer = await imageFile.arrayBuffer();
+      const imageDir = path.join(process.cwd(), 'public/images');
+      fs.writeFileSync(path.join(imageDir, imageName), Buffer.from(imageBuffer));
+    }
 
     const newEvent = await Event.create({
       ...body,
-      street: body.street,
-      city: body.city,
+      image: imagePath,
       createdBy: decoded.userId,
     });
-
-    console.log('New Event:', newEvent);
 
     return NextResponse.json({ message: 'Event created', event: newEvent }, { status: 201 });
   } catch (err) {
