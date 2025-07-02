@@ -21,8 +21,8 @@ export default function Navbar() {
         <div className="flex gap-3">
           <Link href="/userDashboard" className="hover:text-[#f8f1eb]">Home</Link>
           <Link href="/myEvents" className="hover:text-[#f8f1eb]">My Events</Link>
+          <Link href="/registeredEvents" className="hover:text-[#f8f1eb]">Registered Events</Link>
           <Link href="/about" className="hover:text-[#f8f1eb]">About</Link>
-          <Link href="/contact" className="hover:text-[#f8f1eb]">Contact</Link>
         </div>
       </div>
       <div className="flex gap-2">
