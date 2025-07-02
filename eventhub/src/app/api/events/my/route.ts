@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
+import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 
@@ -13,7 +14,9 @@ export async function GET(req: Request) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const events = await Event.find({ createdBy: decoded.userId }).lean();
+    const events = await Event.find({ createdBy: decoded.userId })
+    .populate('attendees', 'name')
+    .lean();
     return NextResponse.json({ events }, { status: 200 });
   } catch (err) {
     console.error('Error fetching user events:', err);

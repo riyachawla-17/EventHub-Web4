@@ -96,6 +96,15 @@ export default function MyEventsPage() {
               <p className="text-sm text-[#59371c]">
                 <strong>To:</strong> {new Date(event.to).toLocaleString()}
               </p>
+              <p className="text-sm text-[#59371c]">
+                <strong>Capacity:</strong> {event.capacity || 'Unlimited'}
+              </p>
+              <p className="text-sm text-[#59371c]">
+                <strong>Attendees:</strong>{' '}
+                {event.attendees.length > 0
+                  ? event.attendees.map((attendee: any) => attendee.name).join(', ')
+                  : 'No attendees yet'}
+              </p>
               <p className="mt-2 text-sm text-[#59371c]">
                 <strong>Location:</strong> {event.street}, {event.city}
               </p>

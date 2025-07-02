@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 
 interface EventType {
   _id: string;
+  image: string;
   title: string;
   description: string;
   from: string;
@@ -37,6 +38,37 @@ export default function UserDashboard() {
       new Date(event.from).toDateString() === selectedDate.toDateString();
     return matchesSearch && matchesDate;
   });
+
+  const handleBookTicket = async (eventId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/events/book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ eventId }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(errorData.message || 'Failed to book ticket');
+        return;
+      }
+
+      const data = await res.json();
+      alert('Ticket booked successfully!');
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event._id === data.event._id ? data.event : event
+        )
+      );
+    } catch (err: any) {
+      console.error('Error booking ticket:', err);
+      alert(err.message || 'Failed to book ticket');
+    }
+  };
 
   const handleCreateEvent = async (formData: FormData) => {
     try {
@@ -103,11 +135,11 @@ export default function UserDashboard() {
         ) : (
           filteredEvents.map(event => (
             <div key={event._id} className="bg-[#f8f1eb] text-[#59371c] p-4 rounded-lg shadow-md">
-                <img
-                  src={event.image || '/images/placeholder.png'}
-                  alt={event.title}
-                  className="w-full h-40 object-cover rounded-md mb-4"
-                />
+              <img
+                src={event.image || '/images/placeholder.png'}
+                alt={event.title}
+                className="w-full h-40 object-cover rounded-md mb-4"
+              />
               <h3 className="text-xl font-bold mb-2">{event.title}</h3>
               <p className="text-[#59371c] mb-4">{event.description}</p>
               <p className="text-sm text-[#59371c]">
@@ -117,7 +149,7 @@ export default function UserDashboard() {
                 <strong>To:</strong> {new Date(event.to).toLocaleString()}
               </p>
               <button
-                onClick={() => alert(`Booking ticket for ${event.title}`)}
+                onClick={() => handleBookTicket(event._id)}
                 className="mt-4 bg-[#59371c] text-white px-4 py-2 rounded hover:bg-[#4e3119] transition"
               >
                 Book Ticket
