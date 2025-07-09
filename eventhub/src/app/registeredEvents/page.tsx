@@ -20,24 +20,24 @@ export default function RegisteredEventsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     fetch('/api/events/registered', {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
+      credentials: 'include',
     })
       .then((res) => {
+        if (res.status === 401) {
+          router.push('/login');
+          return null;
+        }
         if (!res.ok) throw new Error('Failed to fetch registered events');
         return res.json();
       })
       .then((data) => {
-        setEvents(data.events);
+        if (data && data.events) {
+          setEvents(data.events || []);
+        }
         setLoading(false);
       })
       .catch((err) => {

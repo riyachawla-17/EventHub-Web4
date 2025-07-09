@@ -13,7 +13,7 @@ interface EventFormProps {
     to: string;
     street: string;
     city: string;
-    image?: File | null;
+    image?: File | null | string;
   };
 }
 

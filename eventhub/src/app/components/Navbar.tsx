@@ -5,13 +5,20 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
   const router = useRouter();
-  const { isLoggedIn, setIsLoggedIn, setToken } = useAuth();
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setIsLoggedIn(false);
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      setIsLoggedIn(false);
+      router.push('/login');
+    } catch (err) {
+      console.error('Error logging out:', err);
+    }
   };
 
   return (

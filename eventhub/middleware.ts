@@ -17,5 +17,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/events/create'],
+  matcher: ['/myEvents', '/registeredEvents', '/dashboard/:path*', '/events/create'],
 };

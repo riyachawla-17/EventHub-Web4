@@ -17,5 +17,12 @@ export async function POST(req: Request) {
     expiresIn: '7d',
   });
 
-  return NextResponse.json({ message: 'Login successful', token }, { status: 200 });
+  const response = NextResponse.json({ message: 'Login successful' });
+  response.cookies.set('token', token, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60,
+    path: '/',
+  });
+
+  return response;
 }

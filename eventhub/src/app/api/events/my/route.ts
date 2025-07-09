@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 export async function GET(req: Request) {
   await dbConnect();
 
-  const token = req.headers.get('authorization')?.split(' ')[1];
+  const token = req.cookies.get('token')?.value;
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
@@ -15,8 +15,13 @@ export async function GET(req: Request) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const events = await Event.find({ createdBy: decoded.userId })
-    .populate('attendees', 'name')
-    .lean();
+      .populate('attendees', 'name')
+      .lean();
+
+    if (!events || events.length === 0) {
+      return NextResponse.json({ events: [] }, { status: 200 });
+    }
+
     return NextResponse.json({ events }, { status: 200 });
   } catch (err) {
     console.error('Error fetching user events:', err);
