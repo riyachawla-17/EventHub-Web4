@@ -1,21 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get('token')?.value;
+  const token = req.cookies.get("token")?.value;
+
+  const url = req.nextUrl.clone();
+  const pathname = req.nextUrl.pathname;
 
   if (!token) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    // No token → force login
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+
+    // Admin-only protection
+    if (pathname.startsWith("/adminDashboard") && decoded.role !== "admin") {
+      url.pathname = "/unauthorized";
+      return NextResponse.redirect(url);
+    }
+
+    // (Optional) User-only protection
+    if (pathname.startsWith("/userDashboard") && decoded.role !== "user") {
+      url.pathname = "/unauthorized";
+      return NextResponse.redirect(url);
+    }
+
     return NextResponse.next();
   } catch (err) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 }
-
-export const config = {
-  matcher: ['/dashboard/:path*', '/events/create'],
-};

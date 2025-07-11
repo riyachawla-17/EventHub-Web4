@@ -1,168 +1,207 @@
 'use client';
-
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
-import EventCard from './../components/EventCard';
-import EventForm from './../components/EventForm';
-import jwt from 'jsonwebtoken';
+import EventForm from '../components/EventForm';
+import type { EventType } from '@/src/types/event';
 
-interface EventType {
-  _id: string;
-  title: string;
-  description?: string;
-  image?: string;
-  from: string;
-  to: string;
-  time: string;
-  venue: string;
-  location?: {
-    address: string;
-    lat: number;
-    lng: number;
-  };
-}
-
-interface DecodedToken {
-  id: string;
-  role: 'admin' | 'user';
-  exp: number;
-}
-
-export default function HomePage() {
-  const [search, setSearch] = useState('');
-  const [allEvents, setAllEvents] = useState<EventType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [formVisible, setFormVisible] = useState(false);
-  const [userRole, setUserRole] = useState<'admin' | 'user' | null>(null);
+export default function AdminDashboard() {
   const router = useRouter();
+  const [events, setEvents] = useState<EventType[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventType[]>([]);
+  const [formVisible, setFormVisible] = useState(false);
+  const [editEvent, setEditEvent] = useState<EventType | null>(null);
+  const [search, setSearch] = useState('');
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) return router.replace('/login');
 
-    if (token) {
-      try {
-        const decoded: DecodedToken = jwt.verify(token, 'your-secret-key') as DecodedToken;
+    try {
+      const decoded: any = jwtDecode(storedToken);
+      if (decoded.role !== 'admin') return router.replace('/unauthorized');
 
-        if (decoded.exp * 1000 < Date.now()) {
-          localStorage.removeItem('token');
-        } else {
-          setUserRole(decoded.role);
-          if (decoded.role === 'admin') {
-            router.replace('/admin-dashboard');
-          } else {
-            router.replace('/user-dashboard');
-          }
-        }
-      } catch (err) {
-        console.error('Invalid token', err);
-        localStorage.removeItem('token');
-      }
+      setToken(storedToken);
+    } catch {
+      return router.replace('/login');
     }
-  }, [router]);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch('/api/events');
-        if (!res.ok) throw new Error('Failed to fetch events');
-        const data = await res.json();
-        setAllEvents(data.events);
-      } catch (err) {
-        console.error('Error fetching events:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
   }, []);
 
-  const handleCreateEvent = async (eventData: EventType) => {
+  useEffect(() => {
+    if (token) {
+      fetchEvents(token);
+    }
+  }, [token]);
+
+  const fetchEvents = async (authToken: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/events/create', {
-        method: 'POST',
+      const res = await fetch('/api/events', {
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(eventData),
       });
 
-      if (!res.ok) throw new Error('Failed to create event');
+      if (!res.ok) {
+        console.error('Fetch failed:', await res.text());
+        return;
+      }
+
       const data = await res.json();
-      setAllEvents((prev) => [...prev, data.event]);
-      alert('Event created successfully!');
-      setFormVisible(false);
+      setEvents(data.events || []);
+      setFilteredEvents(data.events || []);
     } catch (err) {
-      console.error('Error creating event:', err);
-      alert('Failed to create event');
+      console.error('Error fetching events:', err);
     }
   };
 
-  const filteredEvents = allEvents.filter(event =>
-    event.title.toLowerCase().includes(search.toLowerCase()) ||
-    event.location?.address.toLowerCase().includes(search.toLowerCase()) ||
-    event.venue.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+      const res = await fetch(`/api/events/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        fetchEvents(token!);
+      } else {
+        alert('Delete failed');
+      }
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
+  const handleEdit = (event: EventType) => {
+    setEditEvent(event);
+    setFormVisible(true);
+  };
+
+  const handleSubmit = async (formData: FormData) => {
+    const method = editEvent ? 'PUT' : 'POST';
+    const url = editEvent ? `/api/events/${editEvent._id}` : '/api/events/create';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        setFormVisible(false);
+        setEditEvent(null);
+        fetchEvents(token!);
+      } else {
+        alert('Failed to save event');
+      }
+    } catch {
+      alert('Failed to save event');
+    }
+  };
+
+  const handleSearch = (keyword: string) => {
+    setSearch(keyword);
+    const lower = keyword.toLowerCase();
+    const filtered = events.filter((e) =>
+      e.title.toLowerCase().includes(lower)
+    );
+    setFilteredEvents(filtered);
+  };
 
   return (
-    <div className="space-y-6 p-4">
-      <h1 className="text-3xl font-bold text-center text-[#3c2a21] mb-4">
-        Welcome to EventHub
-      </h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white border p-4 rounded shadow">
+          <h2 className="text-lg font-semibold">Total Events</h2>
+          <p className="text-xl">{filteredEvents.length}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between gap-4 items-center mb-4">
         <input
           type="text"
-          placeholder="Search events by name or location..."
+          placeholder="Search events by title..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-1/2 p-2 border border-[#b2784a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#b2784a] bg-white text-[#59371c] text-sm"
+          onChange={(e) => handleSearch(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full sm:max-w-sm"
         />
 
-        {!userRole ? (
-          <div className="flex gap-2">
-            <Link href="/login">
-              <button className="bg-[#3c2a21] text-white px-4 py-2 rounded-lg hover:bg-[#291b13] text-sm">Login</button>
-            </Link>
-            <Link href="/register">
-              <button className="bg-white text-[#3c2a21] border border-[#3c2a21] px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Register</button>
-            </Link>
-          </div>
-        ) : userRole === 'admin' ? (
-          <button
-            onClick={() => setFormVisible(!formVisible)}
-            className="bg-[#59371c] text-white px-4 py-2 rounded-lg hover:bg-[#4e3119] transition-all text-sm"
-          >
-            {formVisible ? 'Cancel' : 'Create Event'}
-          </button>
-        ) : null}
+        <button
+          className="px-4 py-2 bg-green-600 text-white rounded"
+          onClick={() => {
+            setEditEvent(null);
+            setFormVisible(true);
+          }}
+        >
+          + Create Event
+        </button>
       </div>
 
       {formVisible && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-2 bg-black/50">
-          <div className="relative bg-[#f8f1eb] p-4 rounded-lg shadow-lg w-full max-w-sm max-h-[80vh] overflow-y-auto">
-            <EventForm
-              onSubmit={handleCreateEvent}
-              onCancel={() => setFormVisible(false)}
-            />
-          </div>
-        </div>
+        <EventForm
+          onSubmit={handleSubmit}
+          onCancel={() => setFormVisible(false)}
+          initialData={
+            editEvent
+              ? {
+                  title: editEvent.title,
+                  description: editEvent.description ?? '',
+                  capacity: String(editEvent.capacity ?? ''),
+                  from: editEvent.from,
+                  to: editEvent.to,
+                  street: editEvent.street,
+                  city: editEvent.city,
+                  image: null,
+                }
+              : undefined
+          }
+        />
       )}
 
-      {loading ? (
-        <p className="text-center text-sm text-[#59371c]">Loading events...</p>
-      ) : filteredEvents.length === 0 ? (
-        <p className="text-center text-sm text-[#59371c]">No events found.</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <table className="w-full border mt-4 text-sm">
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="p-2">Title</th>
+            <th className="p-2">Date</th>
+            <th className="p-2">Venue</th>
+            <th className="p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
           {filteredEvents.map((event) => (
-            <EventCard key={event._id} event={event} />
+            <tr key={event._id} className="border-b">
+              <td className="p-2">{event.title}</td>
+              <td className="p-2">
+                {event.from} - {event.to}
+              </td>
+              <td className="p-2">
+                {event.street}, {event.city}
+              </td>
+              <td className="p-2 flex gap-2">
+                <button
+                  onClick={() => handleEdit(event)}
+                  className="text-blue-500 underline"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(event._id)}
+                  className="text-red-500 underline"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
           ))}
-        </div>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 }
