@@ -7,6 +7,8 @@ import EventForm from '../components/EventForm';
 interface EventType {
   _id: string;
   title: string;
+  image?: string | null;
+  attendees: { _id: string; name: string }[];
   description?: string;
   capacity?: number;
   from: string;
@@ -23,23 +25,24 @@ export default function MyEventsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
     fetch('/api/events/my', {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
+      credentials: 'include',
     })
       .then((res) => {
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
         if (!res.ok) throw new Error('Failed to fetch events');
         return res.json();
       })
       .then((data) => {
-        setEvents(data.events);
+        if (data && data.events) {
+          setEvents(data.events || []);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -49,14 +52,10 @@ export default function MyEventsPage() {
   }, [router]);
 
   const handleUpdateEvent = async (formData: FormData) => {
-    const token = localStorage.getItem('token');
     if (!editingEvent) return;
     try {
       const res = await fetch(`/api/events/${editingEvent._id}`, {
         method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
       if (!res.ok) throw new Error('Failed to update event');

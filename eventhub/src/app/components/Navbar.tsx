@@ -22,11 +22,18 @@ export default function Navbar() {
     }
   }, [isLoggedIn]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setIsLoggedIn(false);
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      setIsLoggedIn(false);
+      router.push('/login');
+    } catch (err) {
+      console.error('Error logging out:', err);
+    }
   };
 
   return (
