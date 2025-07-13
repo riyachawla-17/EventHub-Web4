@@ -56,6 +56,30 @@ export default function MyEventsPage() {
       });
   }, [router]);
 
+  const handleUpdateEvent = async (formData: FormData) => {
+    if (!editingEvent) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/events/${editingEvent._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Failed to update event');
+      const data = await res.json();
+      setEvents((prevEvents) =>
+        prevEvents.map((ev) => (ev._id === data.event._id ? data.event : ev))
+      );
+      alert('Event updated successfully!');
+      setEditingEvent(null);
+    } catch (err: any) {
+      console.error('Error updating event:', err);
+      alert(err.message || 'Failed to update event');
+    }
+  };
+
   const handleScanQrCode = async (qrCode: string) => {
     try {
       const token = localStorage.getItem('token');

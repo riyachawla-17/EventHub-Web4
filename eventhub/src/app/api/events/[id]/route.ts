@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
-import { writeFile } from "fs/promises";
 
 export async function GET(
   request: Request,
@@ -36,12 +35,16 @@ export async function PUT(
   if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const resolvedParams = await params;
     const formData = await req.formData();
     const body = Object.fromEntries(formData.entries());
     const imageFile = formData.get("image") as File;
+
+    console.log("Received form data:", body); // Debug log
+    console.log("Image file:", imageFile); // Debug log
 
     let imagePath = body.image;
     if (imageFile && imageFile instanceof File) {
@@ -66,6 +69,8 @@ export async function PUT(
       image: imagePath,
     };
 
+    console.log("Valid fields for update:", validFields); // Debug log
+
     const updatedEvent = await Event.findOneAndUpdate(
       { _id: resolvedParams.id, createdBy: decoded.userId },
       validFields,
@@ -84,13 +89,14 @@ export async function PUT(
       { status: 200 }
     );
   } catch (err: any) {
-    console.error("Error updating event:", err);
+    console.error("Error updating event:", err); // Debug log
     return NextResponse.json(
       { message: "Failed to update event", error: err.message },
       { status: 400 }
     );
   }
 }
+
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
@@ -107,7 +113,7 @@ export async function DELETE(
 
     const event = await Event.findOneAndDelete({
       _id: params.id,
-      createdBy: decoded.userId, // only creator can delete
+      createdBy: decoded.userId,
     });
 
     if (!event) {
