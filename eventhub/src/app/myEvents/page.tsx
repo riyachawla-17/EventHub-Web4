@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import EventForm from '../components/EventForm';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface EventType {
   _id: string;
@@ -22,6 +23,10 @@ export default function MyEventsPage() {
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<EventType | null>(null);
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scannedQrCode, setScannedQrCode] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null); // Store scanner instance
   const router = useRouter();
 
   useEffect(() => {
@@ -51,25 +56,71 @@ export default function MyEventsPage() {
       });
   }, [router]);
 
-  const handleUpdateEvent = async (formData: FormData) => {
-    if (!editingEvent) return;
+  const handleScanQrCode = async (qrCode: string) => {
     try {
-      const res = await fetch(`/api/events/${editingEvent._id}`, {
-        method: 'PUT',
-        body: formData,
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/tickets/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ qrCode }),
       });
-      if (!res.ok) throw new Error('Failed to update event');
+
       const data = await res.json();
-      setEvents((prevEvents) =>
-        prevEvents.map((ev) => (ev._id === data.event._id ? data.event : ev))
-      );
-      alert('Event updated successfully!');
-      setEditingEvent(null);
-    } catch (err: any) {
-      console.error('Error updating event:', err);
-      alert(err.message || 'Failed to update event');
+      if (!res.ok) {
+        alert(data.message || 'Failed to scan QR code');
+        return;
+      }
+
+      alert('QR code scanned successfully!');
+      setShowScanModal(false);
+      setScannedQrCode(null);
+    } catch (err) {
+      console.error('Error scanning QR code:', err);
+      alert('Failed to scan QR code');
     }
   };
+
+  const initializeScanner = () => {
+    const scanner = new Html5QrcodeScanner(
+      'reader',
+      { fps: 10, qrbox: 250 },
+      false
+    );
+
+    scanner.render(
+      (decodedText) => {
+        setScannedQrCode(decodedText);
+        handleScanQrCode(decodedText);
+        setScanError(null);
+        scanner.clear();
+      },
+      (error) => {
+        if (error.name === 'NotFoundException') {
+          setScanError('No QR code detected. Please try again.');
+        }
+      }
+    );
+
+    scannerRef.current = scanner;
+  };
+
+  const closeModal = () => {
+    setShowScanModal(false);
+    setScanError(null);
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      scannerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (showScanModal) {
+      initializeScanner();
+    }
+  }, [showScanModal]);
 
   if (loading) return <p>Loading...</p>;
 
@@ -114,6 +165,12 @@ export default function MyEventsPage() {
                 >
                   Edit
                 </button>
+                <button
+                  onClick={() => setShowScanModal(true)}
+                  className="bg-[#b2784a] text-white px-4 py-2 rounded hover:bg-[#a56a3e] transition"
+                >
+                  Scan QR Code
+                </button>
               </div>
             </div>
           ))}
@@ -136,6 +193,24 @@ export default function MyEventsPage() {
             onSubmit={handleUpdateEvent}
             onCancel={() => setEditingEvent(null)}
           />
+        </div>
+      )}
+
+      {showScanModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+            <h2 className="text-lg font-bold mb-4">Scan QR Code</h2>
+            <div id="reader" style={{ width: '100%' }}></div>
+            {scanError && <p className="text-red-500 text-sm mt-2">{scanError}</p>}
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={closeModal}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

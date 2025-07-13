@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface EventType {
   _id: string;
@@ -12,6 +13,7 @@ interface EventType {
   street: string;
   city: string;
   image?: string;
+  qrCode?: string;
 }
 
 export default function RegisteredEventsPage() {
@@ -73,6 +75,12 @@ export default function RegisteredEventsPage() {
               <p className="text-sm text-[#59371c]">
                 <strong>Location:</strong> {event.street}, {event.city}
               </p>
+              {event.qrCode && (
+                <div className="mt-4">
+                  <strong>QR Code:</strong>
+                  <QRCodeSVG value={event.qrCode} size={128} />
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -1,8 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(req: Request) {
-  const token = req.cookies.get('token')?.value;
+  const cookiesObj = await cookies();
+  const token = cookiesObj.get('token')?.value;
 
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
