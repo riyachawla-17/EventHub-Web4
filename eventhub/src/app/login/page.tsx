@@ -31,7 +31,6 @@ export default function LoginPage() {
     setIsLoggedIn(true);
 
     try {
-      // Decode token to determine role
       const payload = JSON.parse(atob(data.token.split('.')[1]));
       const role = payload.role;
 
@@ -42,7 +41,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('Error decoding token:', err);
-      router.push('/userDashboard'); // fallback
+      router.push('/userDashboard');
     }
   }
 };

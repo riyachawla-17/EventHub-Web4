@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (res.ok) {
           setIsLoggedIn(true);
-          // Optional: get token from cookie/localStorage here
         } else {
           setIsLoggedIn(false);
           setToken(null);
