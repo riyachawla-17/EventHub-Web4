@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
+import Ticket from '@/models/Ticket';
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
@@ -27,8 +28,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'User already booked this event' }, { status: 400 });
     }
 
-    console.log('Capacity:', event.capacity);
-    console.log('Current Attendees:', event.attendees.length);
     if (event.capacity >= 0 && event.attendees.length >= event.capacity) {
       return NextResponse.json({ message: 'Event is fully booked' }, { status: 400 });
     }
@@ -36,7 +35,17 @@ export async function POST(req: Request) {
     event.attendees.push(userId);
     await event.save();
 
-    return NextResponse.json({ message: 'Ticket booked successfully', event }, { status: 200 });
+    const ticket = await Ticket.create({
+      userId,
+      eventId,
+      qrCode: `QR-${userId}-${eventId}`,
+      used: false,
+    });
+
+    return NextResponse.json(
+      { message: 'Ticket booked successfully', event, ticket },
+      { status: 200 }
+    );
   } catch (err: any) {
     console.error('Error booking ticket:', err);
     return NextResponse.json({ message: 'Failed to book ticket', error: err.message }, { status: 500 });
