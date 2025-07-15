@@ -74,7 +74,7 @@ export async function PUT(
     console.log("Valid fields for update:", validFields); // Debug log
 
     const updatedEvent = await Event.findOneAndUpdate(
-      { _id: resolvedParams.id, createdBy: decoded.userId },
+      { _id: params.id, createdBy: decoded.userId },
       validFields,
       { new: true, runValidators: true }
     );
