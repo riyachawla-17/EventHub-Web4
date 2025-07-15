@@ -2,23 +2,26 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { jwtDecode } from 'jwt-decode';
 import { useEffect, useState } from 'react';
 
 export default function Navbar() {
   const router = useRouter();
-  const { isLoggedIn, setIsLoggedIn, setToken } = useAuth();
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const fetchRole = async () => {
       try {
-        const decoded: any = jwtDecode(token);
-        setRole(decoded.role);
+        const res = await fetch('/api/auth/check');
+        const data = await res.json();
+        setRole(data.role);
       } catch {
         setRole(null);
       }
+    };
+
+    if (isLoggedIn) {
+      fetchRole();
     }
   }, [isLoggedIn]);
 
@@ -28,7 +31,6 @@ export default function Navbar() {
         method: 'POST',
         credentials: 'include',
       });
-
       setIsLoggedIn(false);
       router.push('/login');
     } catch (err) {
@@ -59,16 +61,10 @@ export default function Navbar() {
       <div className="flex gap-2">
         {isLoggedIn ? (
           <>
-            <button
-              onClick={() => router.push('/edit-profile')}
-              className="bg-[#59371c] text-white font-semibold py-1 px-3 rounded-md hover:bg-[#4e3119] transition"
-            >
+            <button onClick={() => router.push('/edit-profile')} className="bg-[#59371c] text-white font-semibold py-1 px-3 rounded-md hover:bg-[#4e3119] transition">
               Edit Profile
             </button>
-            <button
-              onClick={handleLogout}
-              className="bg-[#f8f1eb] text-[#59371c] font-semibold py-1 px-3 rounded-md hover:bg-[#e6d9cf] transition"
-            >
+            <button onClick={handleLogout} className="bg-[#f8f1eb] text-[#59371c] font-semibold py-1 px-3 rounded-md hover:bg-[#e6d9cf] transition">
               Logout
             </button>
           </>

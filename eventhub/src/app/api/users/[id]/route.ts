@@ -5,12 +5,14 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/users/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   await dbConnect();
 
+  const userId = context.params.id;
+
   try {
-    const user = await User.findById(params.id).select("-password");
+    const user = await User.findById(userId).select("-password");
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
@@ -25,16 +27,17 @@ export async function GET(
 // PUT /api/users/[id]
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   await dbConnect();
+  const userId = context.params.id;
 
   try {
     const body = await req.json();
     const { name, email } = body;
 
     const updatedUser = await User.findByIdAndUpdate(
-      params.id,
+      userId,
       { name, email },
       { new: true, runValidators: true }
     ).select("-password");
@@ -56,22 +59,18 @@ export async function PUT(
 // PATCH /api/users/[id]
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   await dbConnect();
+  const userId = context.params.id;
 
   try {
     const body = await req.json();
     const { name, email, role, registeredEvents } = body;
 
     const updatedUser = await User.findByIdAndUpdate(
-      params.id,
-      {
-        name,
-        email,
-        role,
-        registeredEvents,
-      },
+      userId,
+      { name, email, role, registeredEvents },
       { new: true, runValidators: true }
     ).select("-password");
 
@@ -92,12 +91,13 @@ export async function PATCH(
 // DELETE /api/users/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   await dbConnect();
+  const userId = context.params.id;
 
   try {
-    const deletedUser = await User.findByIdAndDelete(params.id);
+    const deletedUser = await User.findByIdAndDelete(userId);
 
     if (!deletedUser) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });

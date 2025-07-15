@@ -11,41 +11,45 @@ export default function LoginPage() {
   const { setIsLoggedIn, setToken } = useAuth();
 
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-  const res = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include',
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    setError(data.message || 'Something went wrong');
-  } else {
-    localStorage.setItem('token', data.token);
-    setToken(data.token);
-    setIsLoggedIn(true);
+    if (!res.ok) {
+      setError(data.message || 'Something went wrong');
+    } else {
+      setIsLoggedIn(true);
+      setToken(data.token);
 
-    try {
-      // Decode token to determine role
-      const payload = JSON.parse(atob(data.token.split('.')[1]));
-      const role = payload.role;
+      try {
+        const checkRes = await fetch('/api/auth/check', {
+          method: 'GET',
+          credentials: 'include', 
+        });
 
-      if (role === 'admin') {
-        router.push('/adminDashboard');
-      } else {
+        const checkData = await checkRes.json();
+        const role = checkData.role;
+
+        if (role === 'admin') {
+          router.push('/adminDashboard');
+        } else {
+          router.push('/userDashboard');
+        }
+      } catch (err) {
+        console.error('Error checking user role:', err);
         router.push('/userDashboard');
       }
-    } catch (err) {
-      console.error('Error decoding token:', err);
-      router.push('/userDashboard'); // fallback
     }
-  }
-};
+  };
 
   return (
     <div className="max-w-sm mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
