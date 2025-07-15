@@ -1,9 +1,11 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 import EventForm from '../components/EventForm';
 import type { EventType } from '@/src/types/event';
+// import toast from 'react-hot-toast'; // Optional: for better UX notifications
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -23,16 +25,11 @@ export default function AdminDashboard() {
       if (decoded.role !== 'admin') return router.replace('/unauthorized');
 
       setToken(storedToken);
+      fetchEvents(storedToken); // ✅ Immediately fetch after auth
     } catch {
       return router.replace('/login');
     }
   }, []);
-
-  useEffect(() => {
-    if (token) {
-      fetchEvents(token);
-    }
-  }, [token]);
 
   const fetchEvents = async (authToken: string) => {
     try {
@@ -66,10 +63,13 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         fetchEvents(token!);
+        // toast.success('Event deleted');
       } else {
         alert('Delete failed');
+        // toast.error('Delete failed');
       }
     } catch (err) {
+      console.error(err);
       alert('Delete failed');
     }
   };
@@ -82,6 +82,11 @@ export default function AdminDashboard() {
   const handleSubmit = async (formData: FormData) => {
     const method = editEvent ? 'PUT' : 'POST';
     const url = editEvent ? `/api/events/${editEvent._id}` : '/api/events/create';
+
+    // ✅ If image not selected on edit, remove it from formData
+    if (!formData.get('image')) {
+      formData.delete('image');
+    }
 
     try {
       const res = await fetch(url, {
@@ -96,20 +101,22 @@ export default function AdminDashboard() {
         setFormVisible(false);
         setEditEvent(null);
         fetchEvents(token!);
+        // toast.success('Event saved successfully');
       } else {
-        alert('Failed to save event');
+        const err = await res.json();
+        alert(err?.message || 'Failed to save event');
+        // toast.error(err?.message || 'Failed to save event');
       }
-    } catch {
-      alert('Failed to save event');
+    } catch (err: any) {
+      console.error('Save error:', err);
+      alert(err?.message || 'Failed to save event');
     }
   };
 
   const handleSearch = (keyword: string) => {
     setSearch(keyword);
     const lower = keyword.toLowerCase();
-    const filtered = events.filter((e) =>
-      e.title.toLowerCase().includes(lower)
-    );
+    const filtered = events.filter((e) => e.title.toLowerCase().includes(lower));
     setFilteredEvents(filtered);
   };
 
@@ -179,7 +186,8 @@ export default function AdminDashboard() {
             <tr key={event._id} className="border-b">
               <td className="p-2">{event.title}</td>
               <td className="p-2">
-                {event.from} - {event.to}
+                {new Date(event.from).toLocaleDateString()} -{' '}
+                {new Date(event.to).toLocaleDateString()}
               </td>
               <td className="p-2">
                 {event.street}, {event.city}

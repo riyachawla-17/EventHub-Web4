@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider } from '../context/AuthContext';
+import { Toaster } from 'react-hot-toast'; // ✅ Add this
 
 export const metadata: Metadata = {
   title: 'EventHub',
@@ -18,11 +19,14 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-[#fffaf6] text-[#3c2a21] min-h-screen font-sans">
         <AuthProvider>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </div>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow">
+              {children}
+              <Toaster position="top-right" /> 
+            </main>
+            <Footer />
+          </div>
         </AuthProvider>
       </body>
     </html>

@@ -1,14 +1,19 @@
 import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(_: any, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
   await dbConnect();
+  const { id: userId } = context.params;
+
   try {
-    const events = await Event.find({ attendees: params.id });
-    return NextResponse.json({ events });
+    const events = await Event.find({ attendees: userId });
+    return NextResponse.json({ events }, { status: 200 });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching registered events:", err);
     return NextResponse.json(
       { message: "Failed to load events" },
       { status: 500 }

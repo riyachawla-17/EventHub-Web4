@@ -1,17 +1,18 @@
 import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
 
 export async function GET(
-  request: Request,
-  context: { params: { id: string } | Promise<{ id: string }> }
+  _req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await context.params;
+  await dbConnect();
+  const { id } = params;
+
   try {
-    await dbConnect();
     const event = await Event.findById(id).lean();
     if (!event) {
       return NextResponse.json({ message: "Event not found" }, { status: 404 });
@@ -27,7 +28,7 @@ export async function GET(
 }
 
 export async function PUT(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   await dbConnect();
@@ -38,7 +39,6 @@ export async function PUT(
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const resolvedParams = await params;
     const formData = await req.formData();
     const body = Object.fromEntries(formData.entries());
     const imageFile = formData.get("image") as File;
@@ -52,6 +52,8 @@ export async function PUT(
       imagePath = `/images/${imageName}`;
       const imageBuffer = await imageFile.arrayBuffer();
       const imageDir = path.join(process.cwd(), "public/images");
+
+      fs.mkdirSync(imageDir, { recursive: true }); // Ensure folder exists
       fs.writeFileSync(
         path.join(imageDir, imageName),
         Buffer.from(imageBuffer)
@@ -72,7 +74,7 @@ export async function PUT(
     console.log("Valid fields for update:", validFields); // Debug log
 
     const updatedEvent = await Event.findOneAndUpdate(
-      { _id: resolvedParams.id, createdBy: decoded.userId },
+      { _id: params.id, createdBy: decoded.userId },
       validFields,
       { new: true, runValidators: true }
     );
@@ -98,11 +100,10 @@ export async function PUT(
 }
 
 export async function DELETE(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   await dbConnect();
-
   const token = req.headers.get("authorization")?.split(" ")[1];
   if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
