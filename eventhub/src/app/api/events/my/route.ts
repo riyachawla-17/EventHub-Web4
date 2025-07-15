@@ -2,7 +2,7 @@ import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
 import User from "@/models/User";
 import jwt from "jsonwebtoken";
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   await dbConnect();

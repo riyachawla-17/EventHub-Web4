@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 export async function GET(req: Request) {
   await dbConnect();
 
-  const token = req.headers.get("authorization")?.split(" ")[1];
+  const token = req.cookies.get('token')?.value;
   if (!token)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 

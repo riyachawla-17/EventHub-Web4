@@ -24,10 +24,7 @@ export async function POST(req: NextRequest) {
     }
   );
 
-  const response = NextResponse.json(
-    { message: "Login successful", token },
-    { status: 200 }
-  );
+  const response = NextResponse.json({ message: "Login successful", token });
   response.cookies.set("token", token, {
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60,

@@ -24,20 +24,16 @@ export default function LoginPage() {
 
     const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.message || 'Something went wrong');
-    } else {
-      setIsLoggedIn(true);
-      setToken(data.token);
+  if (!res.ok) {
+    setError(data.message || 'Something went wrong');
+  } else {
+    localStorage.setItem('token', data.token);
+    setToken(data.token);
+    setIsLoggedIn(true);
 
-      try {
-        const checkRes = await fetch('/api/auth/check', {
-          method: 'GET',
-          credentials: 'include', 
-        });
-
-        const checkData = await checkRes.json();
-        const role = checkData.role;
+    try {
+      const payload = JSON.parse(atob(data.token.split('.')[1]));
+      const role = payload.role;
 
         if (role === 'admin') {
           router.push('/adminDashboard');

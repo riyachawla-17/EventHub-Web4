@@ -43,6 +43,9 @@ export async function PUT(
     const body = Object.fromEntries(formData.entries());
     const imageFile = formData.get("image") as File;
 
+    console.log("Received form data:", body); // Debug log
+    console.log("Image file:", imageFile); // Debug log
+
     let imagePath = body.image;
     if (imageFile && imageFile instanceof File) {
       const imageName = `${Date.now()}-${imageFile.name}`;
@@ -57,18 +60,22 @@ export async function PUT(
       );
     }
 
+    const validFields = {
+      title: body.title,
+      description: body.description,
+      capacity: body.capacity,
+      from: body.from,
+      to: body.to,
+      street: body.street,
+      city: body.city,
+      image: imagePath,
+    };
+
+    console.log("Valid fields for update:", validFields); // Debug log
+
     const updatedEvent = await Event.findOneAndUpdate(
-      { _id: params.id, createdBy: decoded.userId },
-      {
-        title: body.title,
-        description: body.description,
-        capacity: body.capacity,
-        from: body.from,
-        to: body.to,
-        street: body.street,
-        city: body.city,
-        image: imagePath,
-      },
+      { _id: resolvedParams.id, createdBy: decoded.userId },
+      validFields,
       { new: true, runValidators: true }
     );
 
@@ -84,7 +91,7 @@ export async function PUT(
       { status: 200 }
     );
   } catch (err: any) {
-    console.error("Error updating event:", err);
+    console.error("Error updating event:", err); // Debug log
     return NextResponse.json(
       { message: "Failed to update event", error: err.message },
       { status: 400 }

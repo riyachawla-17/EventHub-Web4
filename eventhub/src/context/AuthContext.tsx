@@ -45,18 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         credentials: 'include',
       });
 
-      if (res.ok) {
-        setIsLoggedIn(true);
-      } else {
+        if (res.ok) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+          setToken(null);
+        }
+      } catch (err) {
+        console.error('Error checking login status:', err);
         setIsLoggedIn(false);
         setToken(null);
       }
-    } catch (err) {
-      console.error('Error checking login status:', err);
-      setIsLoggedIn(false);
-      setToken(null);
-    }
-  };
+    };
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
