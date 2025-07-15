@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider } from '../context/AuthContext';
-import { Toaster } from 'react-hot-toast'; // ✅ Add this
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'EventHub',
