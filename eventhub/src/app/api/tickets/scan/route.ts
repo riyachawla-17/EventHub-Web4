@@ -16,11 +16,18 @@ export async function POST(req: Request) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const userId = decoded.userId;
 
-    const { qrCode } = await req.json();
+    const { qrCode, eventId } = await req.json();
 
-    const ticket = await Ticket.findOne({ qrCode }).populate('eventId');
+    const ticket = await Ticket.findOne({ qrCode }).populate({
+      path: 'eventId',
+      select: '_id',
+    });
     if (!ticket) {
       return NextResponse.json({ message: 'Invalid QR code' }, { status: 404 });
+    }
+
+    if (ticket.eventId._id.toString() !== eventId.toString()) {
+      return NextResponse.json({ message: 'QR code does not belong to this event' }, { status: 403 });
     }
 
     const event = await Event.findById(ticket.eventId);

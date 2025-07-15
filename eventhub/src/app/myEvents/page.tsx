@@ -26,7 +26,8 @@ export default function MyEventsPage() {
   const [showScanModal, setShowScanModal] = useState(false);
   const [scannedQrCode, setScannedQrCode] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null); // Store scanner instance
+  const [currentEventId, setCurrentEventId] = useState<string | null>(null);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function MyEventsPage() {
     }
   };
 
-  const handleScanQrCode = async (qrCode: string) => {
+  const handleScanQrCode = async (qrCode: string, eventId: string) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch('/api/tickets/scan', {
@@ -89,7 +90,7 @@ export default function MyEventsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ qrCode }),
+        body: JSON.stringify({ qrCode, eventId }),
       });
 
       const data = await res.json();
@@ -107,44 +108,47 @@ export default function MyEventsPage() {
     }
   };
 
-  const initializeScanner = () => {
-    const scanner = new Html5QrcodeScanner(
-      'reader',
-      { fps: 10, qrbox: 250 },
-      false
-    );
+  const initializeScanner = (eventId: string) => {
+  const scanner = new Html5QrcodeScanner(
+    'reader',
+    { fps: 10, qrbox: 250 },
+    false
+  );
 
-    scanner.render(
-      (decodedText) => {
-        setScannedQrCode(decodedText);
-        handleScanQrCode(decodedText);
-        setScanError(null);
-        scanner.clear();
-      },
-      (error) => {
-        if (error.name === 'NotFoundException') {
-          setScanError('No QR code detected. Please try again.');
-        }
+  scanner.render(
+    (decodedText) => {
+      setScannedQrCode(decodedText);
+      handleScanQrCode(decodedText, eventId);
+      setScanError(null);
+      scanner.clear();
+    },
+    (error) => {
+      if (error.includes('NotFoundException')) {
+        setScanError('No QR code detected. Please try again.');
       }
-    );
-
-    scannerRef.current = scanner;
-  };
-
-  const closeModal = () => {
-    setShowScanModal(false);
-    setScanError(null);
-    if (scannerRef.current) {
-      scannerRef.current.clear();
-      scannerRef.current = null;
     }
-  };
+  );
 
-  useEffect(() => {
-    if (showScanModal) {
-      initializeScanner();
+  scannerRef.current = scanner;
+};
+
+useEffect(() => {
+  if (showScanModal && currentEventId) {
+    const readerElement = document.getElementById('reader');
+    if (readerElement) {
+      initializeScanner(currentEventId);
     }
-  }, [showScanModal]);
+  }
+}, [showScanModal, currentEventId]);
+
+const closeModal = () => {
+  setShowScanModal(false);
+  setScanError(null);
+  if (scannerRef.current) {
+    scannerRef.current.clear();
+    scannerRef.current = null;
+  }
+};
 
   if (loading) return <p>Loading...</p>;
 
@@ -190,7 +194,10 @@ export default function MyEventsPage() {
                   Edit
                 </button>
                 <button
-                  onClick={() => setShowScanModal(true)}
+                  onClick={() => {
+                    setCurrentEventId(event._id);
+                    setShowScanModal(true);
+                  }}
                   className="bg-[#b2784a] text-white px-4 py-2 rounded hover:bg-[#a56a3e] transition"
                 >
                   Scan QR Code
