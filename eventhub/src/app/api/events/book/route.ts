@@ -3,10 +3,12 @@ import Event from '@/models/Event';
 import Ticket from '@/models/Ticket';
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
   await dbConnect();
-  const token = req.headers.get('authorization')?.split(' ')[1];
+  const cookiesObj = cookies();
+  const token = cookiesObj.get('token')?.value;
 
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
