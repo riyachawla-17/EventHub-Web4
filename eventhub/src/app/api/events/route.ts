@@ -2,11 +2,13 @@ import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
   await dbConnect();
 
-  const token = req.cookies.get('token')?.value;
+  const cookiesObj = await cookies();
+  const token = cookiesObj.get('token')?.value;
   if (!token)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 

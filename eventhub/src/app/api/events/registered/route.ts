@@ -4,6 +4,19 @@ import Ticket from '@/models/Ticket';
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { Types } from 'mongoose';
+
+interface EventWithAttendees {
+  _id: Types.ObjectId;
+  title: string;
+  description?: string;
+  capacity?: number;
+  from: Date;
+  to: Date;
+  street: string;
+  city: string;
+  attendees: { _id: Types.ObjectId; name: string }[];
+}
 
 export async function GET(req: Request) {
   await dbConnect();
@@ -20,7 +33,7 @@ export async function GET(req: Request) {
 
     const events = await Event.find({ attendees: userId })
       .populate('attendees', 'name')
-      .lean();
+      .lean<EventWithAttendees>();
 
     const tickets = await Ticket.find({ userId }).lean();
 

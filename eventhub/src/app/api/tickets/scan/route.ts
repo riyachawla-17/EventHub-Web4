@@ -44,7 +44,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: 'QR code scanned successfully', ticket }, { status: 200 });
   } catch (err) {
-    console.error('Error scanning QR code:', err);
-    return NextResponse.json({ message: 'Failed to scan QR code', error: err.message }, { status: 500 });
+    const error = err as Error;
+    console.error('Error scanning QR code:', error.message);
+    return NextResponse.json({ message: 'Failed to scan QR code', error: error.message }, { status: 500 });
   }
 }

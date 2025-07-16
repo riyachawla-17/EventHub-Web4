@@ -17,7 +17,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'User already exists' }, { status: 409 });
   }
 
-  // Get the highest existing userId and increment
   const lastUser = await User.findOne().sort({ userId: -1 });
   const nextUserId = lastUser?.userId ? lastUser.userId + 1 : 1;
 

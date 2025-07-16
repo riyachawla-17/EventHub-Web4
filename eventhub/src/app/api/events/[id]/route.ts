@@ -43,9 +43,6 @@ export async function PUT(
     const body = Object.fromEntries(formData.entries());
     const imageFile = formData.get("image") as File;
 
-    console.log("Received form data:", body); // Debug log
-    console.log("Image file:", imageFile); // Debug log
-
     let imagePath = body.image;
     if (imageFile && imageFile instanceof File) {
       const imageName = `${Date.now()}-${imageFile.name}`;
@@ -53,7 +50,7 @@ export async function PUT(
       const imageBuffer = await imageFile.arrayBuffer();
       const imageDir = path.join(process.cwd(), "public/images");
 
-      fs.mkdirSync(imageDir, { recursive: true }); // Ensure folder exists
+      fs.mkdirSync(imageDir, { recursive: true });
       fs.writeFileSync(
         path.join(imageDir, imageName),
         Buffer.from(imageBuffer)
@@ -70,8 +67,6 @@ export async function PUT(
       city: body.city,
       image: imagePath,
     };
-
-    console.log("Valid fields for update:", validFields); // Debug log
 
     const updatedEvent = await Event.findOneAndUpdate(
       { _id: params.id, createdBy: decoded.userId },
@@ -91,7 +86,7 @@ export async function PUT(
       { status: 200 }
     );
   } catch (err: any) {
-    console.error("Error updating event:", err); // Debug log
+    console.error("Error updating event:", err);
     return NextResponse.json(
       { message: "Failed to update event", error: err.message },
       { status: 400 }
