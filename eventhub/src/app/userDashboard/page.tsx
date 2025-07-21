@@ -67,6 +67,7 @@ export default function UserDashboard() {
     } catch (err: any) {
       console.error('Error booking ticket:', err);
       alert(err.message || 'Failed to book ticket');
+      
     }
   };
 
@@ -106,6 +107,7 @@ export default function UserDashboard() {
         <DatePicker
           selected={selectedDate}
           onChange={(date: Date | null) => setSelectedDate(date)}
+          minDate={new Date()}
           className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholderText="Select a date"
         />
