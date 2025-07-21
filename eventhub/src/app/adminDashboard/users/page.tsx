@@ -77,21 +77,18 @@ export default function AdminUsersPage() {
 const handleEdit = async (user: UserType) => {
   setEditedUser({ ...user });
 
-  // Fetch registered event details if not already present
   if (!eventsMap[user._id]) {
     try {
       const res = await fetch(`/api/users/${user._id}/registered-events`);
       const data = await res.json();
       if (data?.events) {
         setEventsMap(prev => ({ ...prev, [user._id]: data.events }));
-        // ⚠️ Also update editedEvents here using fetched data
         setEditedEvents(data.events.map((e: EventType) => e._id));
       }
     } catch (err) {
       console.error('Failed to fetch events for edit:', err);
     }
   } else {
-    // If already available in eventsMap
     setEditedEvents(eventsMap[user._id].map((e) => e._id));
   }
 
@@ -165,7 +162,6 @@ const handleEdit = async (user: UserType) => {
         </table>
       )}
 
-      {/* Info Modal */}
       {showInfo && selectedUser && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-lg">
@@ -188,7 +184,6 @@ const handleEdit = async (user: UserType) => {
         </div>
       )}
 
-      {/* Edit Modal */}
       {showEdit && editedUser && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-lg">
