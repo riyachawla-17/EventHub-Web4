@@ -4,12 +4,13 @@ import { NextResponse, NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
-import type { NextApiRequest, NextApiResponse } from "next";
 
+// ✅ Corrected GET handler
 export async function GET(
-  req: NextApiRequest,
-  context : { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
+  await dbConnect();
   const { id } = context.params;
 
   try {
@@ -27,6 +28,7 @@ export async function GET(
   }
 }
 
+// ✅ PUT handler is already correct
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -94,6 +96,7 @@ export async function PUT(
   }
 }
 
+// ✅ DELETE handler is already correct
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
