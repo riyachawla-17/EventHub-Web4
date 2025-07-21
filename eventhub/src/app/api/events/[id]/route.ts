@@ -4,13 +4,13 @@ import { NextResponse, NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextApiRequest,
+  context : { params: { id: string } }
 ) {
-  await dbConnect();
-  const { id } = params;
+  const { id } = context.params;
 
   try {
     const event = await Event.findById(id).lean();
