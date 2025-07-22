@@ -4,6 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
+import { cookies } from "next/headers";
 
 export async function GET(
   req: NextRequest,
@@ -31,7 +32,8 @@ export async function PUT(
   { params }: any
 ) {
   await dbConnect();
-  const token = req.headers.get("authorization")?.split(" ")[1];
+  const cookiesObj = await cookies();
+  const token = cookiesObj.get('token')?.value;
   if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
