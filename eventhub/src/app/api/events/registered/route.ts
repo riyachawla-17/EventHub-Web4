@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
     const events = await Event.find({ attendees: userId })
       .populate('attendees', 'name')
-      .lean<EventWithAttendees>();
+      .lean<EventWithAttendees[]>();
 
     const tickets = await Ticket.find({ userId }).lean();
 
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
 
         return {
           ...event,
-          qrCode: ticket.qrCode,
+          qrCode: ticket?.qrCode ?? '',
         };
       })
     );

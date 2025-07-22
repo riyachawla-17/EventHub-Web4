@@ -5,33 +5,30 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
 
-// ✅ Corrected GET handler
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
-) {
+  context: any
+): Promise<ReturnType<typeof NextResponse.json>> {
   await dbConnect();
   const { id } = context.params;
 
   try {
     const event = await Event.findById(id).lean();
     if (!event) {
-      return NextResponse.json({ message: "Event not found" }, { status: 404 });
+      return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }
-    return NextResponse.json({ event });
+
+    return NextResponse.json({ event }, { status: 200 });
   } catch (err) {
-    console.error("Error in GET /api/events/[id]:", err);
-    return NextResponse.json(
-      { message: "Failed to fetch event" },
-      { status: 500 }
-    );
+    console.error("Error fetching event:", err);
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }
 
-// ✅ PUT handler is already correct
+
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   await dbConnect();
   const token = req.headers.get("authorization")?.split(" ")[1];
@@ -96,10 +93,9 @@ export async function PUT(
   }
 }
 
-// ✅ DELETE handler is already correct
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   await dbConnect();
   const token = req.headers.get("authorization")?.split(" ")[1];

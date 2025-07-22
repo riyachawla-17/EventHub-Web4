@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/users/[id]
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: any
 ) {
   await dbConnect();
 
@@ -27,7 +27,7 @@ export async function GET(
 // PUT /api/users/[id]
 export async function PUT(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: any
 ) {
   await dbConnect();
   const userId = context.params.id;
@@ -59,7 +59,7 @@ export async function PUT(
 // PATCH /api/users/[id]
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: any
 ) {
   await dbConnect();
   const userId = context.params.id;
@@ -91,7 +91,7 @@ export async function PATCH(
 // DELETE /api/users/[id]
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: any
 ) {
   await dbConnect();
   const userId = context.params.id;

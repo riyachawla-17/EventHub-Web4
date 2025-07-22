@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation';
 import { Buffer } from 'buffer';
+import process from 'process';
 
 interface PageProps {
-  params: {
-    id: string;
-  };
+  params: any;
 }
 
 export default async function EventDetailsPage({ params }: PageProps) {
